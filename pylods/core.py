@@ -3,11 +3,15 @@ Created on Nov 26, 2017
 
 @author: Salim
 '''
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 from pylods.error import ObjectDeserializationException, UnexpectedStateException, \
     ParseException
 from enum import Enum
 from _pyio import __metaclass__
+from io import IOBase
+import types
+from io import BytesIO
+from umsgpack import UnsupportedTypeException
 
 
         
@@ -110,36 +114,81 @@ class Module():
 
 
 
-
-
-
 class Parser():
     '''
-        Main Parser class. This parser requires a dictionary to serialize/ deserialize from an input stream
+        Used for parsing to events
+    '''
+    
+    __slots__ = ['_pdict']
+    
+    
+    def __init__(self, pdict):
+        self.pdict = pdict
+        
+        
+    
+    def prase(self, data):
+        if type(data) is types.StringType:
+            data = BytesIO(data);
+        if isinstance(data, IOBase):
+            return self._gen_events(data)
+        else:
+            raise UnsupportedTypeException('input should be of one the types [str, IOBase] but ' + type(data) + " was received!!")
+        
+    def _gen_events(self, instream):
+        '''
+            generates events using the specific parser
+        :param instream:
+        '''
+        return self._pdict.gen_events(instream)
+        
+    
+class EventStream():
+    '''
+        Wrapper Iterator as output of Parser
+    '''
+    
+    def __init__(self, events):
+        self._events = events
+        
+    
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return  self._events.next()
+    
+    next = __next__  # Python 2
+    
+    
+
+
+
+class ObjectMapper():
+    '''
+        Main Parser class to deserialize to objects, values and etc. This parser requires a dictionary to serialize/ deserialize from an input stream
     '''
     
     __classmeta__ = ABCMeta
     
-    __slots__ = ['_pdict','_serializers', '_deserializers']
+    __slots__ = ['_pdict', '_serializers', '_deserializers', '_events']
     
-    def __init__(self, pdict):
+    
+    def __init__(self, pdict, events):
         self._pdict = pdict
         self._serializers = {}
         self._deserializers = {}
+        self._events = self.prepare_input(events)
     
     
-    def parse(self, instream, cls):
-        '''
-            If called it will parse input and generate output
-        '''
-        events = self._gen_events(instream)
-        return self.parse_obj(events, cls)
-    
-    
-        
+    def parse_value(self):
+        val = self._pdict.read_value(self._events.next())
+        return val
             
         
-    def parse_obj(self, events, cls, state=POPState.EXPECTING_OBJ_START):
+    def parse_obj(self, cls=dict, state=POPState.EXPECTING_OBJ_START):
+        
+        events = self._events
         obj = cls()
         if state is POPState.EXPECTING_OBJ_START:
             # setting to object start state
@@ -158,7 +207,7 @@ class Parser():
                     # check valid state
                     if state is not POPState.EXPECTING_OBJ_PROPERTY_OR_END:
                         raise UnexpectedStateException(state, POPState.EXPECTING_OBJ_PROPERTY_OR_END, " wasn't expecting a end of object")
-                    return obj
+                    return  (obj, events)
                 elif self._pdict.is_obj_property_name(event):
                     # check valid state
                     if state is not POPState.EXPECTING_OBJ_PROPERTY_OR_END:
@@ -206,7 +255,8 @@ class Parser():
             
         raise UnexpectedStateException(state, POPState.EX, " wasn't expecting a value")
             
-    def parse_array(self, events, state=POPState.EXPECTING_ARRAY_START):
+    def parse_array(self, state=POPState.EXPECTING_ARRAY_START):
+        events = self._events
         res = []
         
         if state is POPState.EXPECTING_ARRAY_START:
@@ -223,7 +273,7 @@ class Parser():
                 # check valid state
                 if state is not POPState.EXPECTING_VALUE_OR_ARRAY_END:
                     raise UnexpectedStateException(POPState.EXPECTING_VALUE_OR_ARRAY_END, state, " wasn't expecting a end of object")
-                return res
+                return (res, events)
             elif self._pdict.is_value(event):
                 # check valid state
                 if state is not POPState.EXPECTING_VALUE_OR_ARRAY_END:
@@ -240,17 +290,14 @@ class Parser():
             
             event = events.next()
         
-        
-        
-    def _gen_events(self, instream):
-        '''
-            generates events using the specific parser
-        :param instream:
-        '''
-        return self._pdict.gen_events(instream)
-        
-    
       
+        
+    def prepare_input(self, events):    
+        if isinstance(events, EventStream):
+            return events
+        else:
+            raise UnsupportedTypeException('Input can only be an ' + EventStream + ' instance!!')
+        
     
     def register_module(self, module):
         for serializer in module.serializers:
@@ -260,10 +307,10 @@ class Parser():
             self.register_deserializer(deserializer)
         
     
-    def register_serializer(self,serializer):
+    def register_serializer(self, serializer):
         self._serializers[serializer.handled_class()] = serializer
     
-    def register_deserializer(self,deserializer):
+    def register_deserializer(self, deserializer):
         self._deserializers[deserializer.handled_class()] = deserializer
 
 
