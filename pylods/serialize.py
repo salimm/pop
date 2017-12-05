@@ -4,6 +4,7 @@ Created on Nov 28, 2017
 @author: Salim
 '''
 from abc import ABCMeta, abstractmethod
+from pylods.core import EventStream
 
 
 
@@ -50,7 +51,7 @@ class EventBasedDeserializer(Deserializer):
     __metaclass__ = ABCMeta
     
     def execute(self, events, pdict, count):
-        tmp = ClassEventIterator(events,pdict, count)
+        tmp = EventStream(ClassEventIterator(events,pdict, count))
         val = self.deserialize(tmp, pdict)
         try:
             while tmp.next():
