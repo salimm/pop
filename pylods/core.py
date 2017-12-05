@@ -244,7 +244,7 @@ class ObjectMapper():
                     if deserializer:
                         val = deserializer.execute(events, self._pdict, count=1)
                     else:    
-                        val = self.parse_obj(events, valcls, POPState.EXPECTING_OBJ_PROPERTY_OR_END)
+                        val = self.parse_obj(valcls, POPState.EXPECTING_OBJ_PROPERTY_OR_END)
                 else:
                     raise Exception('unrecognized event when reading value: ' + str(event))
                 # setting value
@@ -289,7 +289,7 @@ class ObjectMapper():
                 val = self._pdict.read_value(event)
                 res.append(val)
             elif self._pdict.is_obj_start(event):
-                val = self.parse_obj(events, dict, POPState.EXPECTING_OBJ_PROPERTY_OR_END)
+                val = self.parse_obj( dict, POPState.EXPECTING_OBJ_PROPERTY_OR_END)
                 res.append(val)
             else:
                 raise Exception('Unexpected event')
