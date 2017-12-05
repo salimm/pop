@@ -270,7 +270,8 @@ class ObjectMapper():
             # check if input is object
             if not self._pdict.is_array_start(first):
                 raise UnexpectedStateException(POPState.EXPECTING_ARRAY_START, " didn't received start of array!!!")
-            
+        
+        state = POPState.EXPECTING_VALUE_OR_ARRAY_END    
         event = events.next()
         while event:
             # end of object
@@ -299,6 +300,8 @@ class ObjectMapper():
         if cls is not None and valname is not None:
             # attempt to resolve class of value
             valcls = Typed.resolve(valname, cls)
+        if cls is not None and valname is None:
+            valcls = cls
         if valcls is None:  # if not resolved simply convert to dictionary
             valcls = dict
         deserializer = self._deserializers.get(valcls, None)
