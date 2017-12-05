@@ -189,12 +189,17 @@ class ObjectMapper():
         self._events = self.prepare_input(events)
     
     
-    def parse_value(self):
+    def read_value(self):
         val = self._pdict.read_value(self._events.next())
         return val
             
+
+    def read_obj_propery_name(self):
+        propname = self._pdict.read_value(self._events.next());
+        return propname
+    
         
-    def parse_obj(self, cls=dict, state=POPState.EXPECTING_OBJ_START):
+    def read_obj(self, cls=dict, state=POPState.EXPECTING_OBJ_START):
         
         events = self._events
         obj = cls()
@@ -228,7 +233,7 @@ class ObjectMapper():
             elif state is POPState.EXPECTING_VALUE:
                 val = None
                 if self._pdict.is_array_start(event):
-                    val = self.parse_array(POPState.EXPECTING_VALUE_OR_ARRAY_END)
+                    val = self.read_array(POPState.EXPECTING_VALUE_OR_ARRAY_END, cls, propname)
                 elif self._pdict.is_value(event):
                     # check valid state
                     if state is not POPState.EXPECTING_VALUE:
@@ -236,15 +241,7 @@ class ObjectMapper():
                     # read value
                     val = self._pdict.read_value(event)
                 elif self._pdict.is_obj_start(event):
-                    # attempt to resolve class of value
-                    valcls = Typed.resolve(propname, cls)
-                    if valcls is None:  # if not resolved simply convert to dictionary
-                        valcls = dict
-                    deserializer = self._deserializers.get(valcls, None)
-                    if deserializer:
-                        val = deserializer.execute(events, self._pdict, count=1)
-                    else:    
-                        val = self.parse_obj(valcls, POPState.EXPECTING_OBJ_PROPERTY_OR_END)
+                    val = self._read_obj_as_value(cls, propname)
                 else:
                     raise Exception('unrecognized event when reading value: ' + str(event))
                 # setting value
@@ -263,7 +260,7 @@ class ObjectMapper():
             
         raise UnexpectedStateException(state, POPState.EX, " wasn't expecting a value")
             
-    def parse_array(self, state=POPState.EXPECTING_ARRAY_START):
+    def read_array(self, state=POPState.EXPECTING_ARRAY_START, cls=None, propname=None):
         events = self._events
         res = []
         
@@ -289,7 +286,7 @@ class ObjectMapper():
                 val = self._pdict.read_value(event)
                 res.append(val)
             elif self._pdict.is_obj_start(event):
-                val = self.parse_obj( dict, POPState.EXPECTING_OBJ_PROPERTY_OR_END)
+                val = self._read_obj_as_value( cls, propname)
                 res.append(val)
             else:
                 raise Exception('Unexpected event')
@@ -297,8 +294,19 @@ class ObjectMapper():
             
             
             event = events.next()
-        
-      
+
+    def _read_obj_as_value(self, cls=None, valname=None):
+        if cls is not None and valname is not None:
+            # attempt to resolve class of value
+            valcls = Typed.resolve(valname, cls)
+        if valcls is None:  # if not resolved simply convert to dictionary
+            valcls = dict
+        deserializer = self._deserializers.get(valcls, None)
+        if deserializer:
+            val = deserializer.execute(self._events, self._pdict, count=1)
+        else:    
+            val = self.read_obj(valcls, POPState.EXPECTING_OBJ_PROPERTY_OR_END)
+        return val
         
     def prepare_input(self, events):    
         if isinstance(events, EventStream):
