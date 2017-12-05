@@ -12,6 +12,7 @@ from io import IOBase
 import types
 from io import BytesIO
 from umsgpack import UnsupportedTypeException
+from io import BufferedReader, FileIO
 
 
         
@@ -123,24 +124,31 @@ class Parser():
     
     
     def __init__(self, pdict):
-        self.pdict = pdict
+        self._pdict = pdict
         
         
     
-    def prase(self, data):
+    def parse(self, data):
+        
+        
         if type(data) is types.StringType:
             data = BytesIO(data);
-        if isinstance(data, IOBase):
-            return self._gen_events(data)
+            data.seek(0)
+        if type(data) is types.FileType:
+            pass
+        elif isinstance(data, IOBase):
+            pass
         else:
-            raise UnsupportedTypeException('input should be of one the types [str, IOBase] but ' + type(data) + " was received!!")
+            raise UnsupportedTypeException('input should be of one the types [str, IOBase, file] but ' + str(type(data)) + " was received!!")
+        
+        return self._gen_events(data)
         
     def _gen_events(self, instream):
         '''
             generates events using the specific parser
         :param instream:
         '''
-        return self._pdict.gen_events(instream)
+        return EventStream(self._pdict.gen_events(instream))
         
     
 class EventStream():
@@ -207,7 +215,7 @@ class ObjectMapper():
                     # check valid state
                     if state is not POPState.EXPECTING_OBJ_PROPERTY_OR_END:
                         raise UnexpectedStateException(state, POPState.EXPECTING_OBJ_PROPERTY_OR_END, " wasn't expecting a end of object")
-                    return  (obj, events)
+                    return  obj
                 elif self._pdict.is_obj_property_name(event):
                     # check valid state
                     if state is not POPState.EXPECTING_OBJ_PROPERTY_OR_END:
@@ -220,7 +228,7 @@ class ObjectMapper():
             elif state is POPState.EXPECTING_VALUE:
                 val = None
                 if self._pdict.is_array_start(event):
-                    val = self.parse_array(events, POPState.EXPECTING_VALUE_OR_ARRAY_END)
+                    val = self.parse_array(POPState.EXPECTING_VALUE_OR_ARRAY_END)
                 elif self._pdict.is_value(event):
                     # check valid state
                     if state is not POPState.EXPECTING_VALUE:
@@ -273,7 +281,7 @@ class ObjectMapper():
                 # check valid state
                 if state is not POPState.EXPECTING_VALUE_OR_ARRAY_END:
                     raise UnexpectedStateException(POPState.EXPECTING_VALUE_OR_ARRAY_END, state, " wasn't expecting a end of object")
-                return (res, events)
+                return res
             elif self._pdict.is_value(event):
                 # check valid state
                 if state is not POPState.EXPECTING_VALUE_OR_ARRAY_END:
@@ -296,7 +304,7 @@ class ObjectMapper():
         if isinstance(events, EventStream):
             return events
         else:
-            raise UnsupportedTypeException('Input can only be an ' + EventStream + ' instance!!')
+            raise UnsupportedTypeException('Input can only be an ' + str(EventStream) + ' instance!!')
         
     
     def register_module(self, module):
