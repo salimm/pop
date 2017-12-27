@@ -66,3 +66,69 @@ class Dictionary(object):
         '''
             Returns the value in the given event or tuple representing the event
         '''
+    
+    
+    ######################### OBJECT
+    
+    @abstractmethod
+    def write_object_start(self, numfields, outstream):
+        raise Exception("Not Implemented!!!")
+    
+    @abstractmethod
+    def write_object_end(self, numfields, outstream):
+        raise Exception("Not Implemented!!!")
+    
+    @abstractmethod
+    def write_object_field_separator(self, name, value, outstream):
+        raise Exception("Not Implemented!!!")
+    
+    @abstractmethod
+    def write_object_field_name(self, name, outstream):
+        raise Exception("Not Implemented!!!")
+    
+    @abstractmethod
+    def write_object_name_value_separator(self, name, value, outstream):
+        raise Exception("Not Implemented!!!")
+
+    ######################### ARRAY
+    
+    @abstractmethod 
+    def write_array_start(self, length, outstream):
+        raise Exception("Not Implemented!!!")
+    
+    @abstractmethod 
+    def write_array_end(self, length, outstream):
+        raise Exception("Not Implemented!!!")
+    
+    @abstractmethod 
+    def write_array_field_separator(self, value, outstream):
+        raise Exception("Not Implemented!!!")
+     
+    
+    ######################### DICT
+    
+    @abstractmethod
+    def write_dict_start(self, numfields, outstream):
+        raise Exception("Not Implemented!!!")
+    
+    @abstractmethod
+    def write_dict_end(self, numfields, outstream):
+        raise Exception("Not Implemented!!!")
+    
+    @abstractmethod
+    def write_dict_field_separator(self, name, value, outstream):
+        raise Exception("Not Implemented!!!")    
+    
+    @abstractmethod
+    def write_dict_field_name(self, name, outstream):
+        raise Exception("Not Implemented!!!")
+    
+    @abstractmethod
+    def write_dict_name_value_separator(self, name, value, outstream):
+        raise Exception("Not Implemented!!!")
+
+    
+    @abstractmethod
+    def write_value(self, val, outstream):
+        raise Exception("Not Implemented!!!")    
+    
