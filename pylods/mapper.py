@@ -11,6 +11,34 @@ from abc import ABCMeta
 from pylods.serialize import DataFormatGenerator
 
 
+class Module():
+    '''
+        A Module contains customer serializer/deserializers.
+    '''
+    
+    __metaclass__ = ABCMeta
+    __slots__ = ['_serializers', '_deserializers']
+    
+    def __init__(self):
+        self._serializers = []
+        self._deserializers = []
+    
+    def add_serializer(self, serializer):
+        self._serializers.append(serializer)
+    
+    def add_deserializer(self, deserializer):
+        self._deserializers.append(deserializer)
+    
+    
+    def get_serializers(self):
+        return self._serializers
+    
+    def get_deserializers(self):
+        return self._deserializers
+    
+    serializers = property(get_serializers)
+    deserializers = property(get_deserializers)
+
 class ObjectMapper(DataFormatGenerator):
     '''
         Main Parser class to deserialize to objects, values and etc. This parser requires a dictionary to serialize/ deserialize from an input stream
