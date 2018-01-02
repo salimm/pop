@@ -23,10 +23,6 @@ class Deserializer():
     def execute(self, events, pdict, count):
         raise Exception('Not implemented');
     
-    @abstractmethod
-    def handled_class(self):
-        raise Exception('Not implemented');
-    
     
     
 

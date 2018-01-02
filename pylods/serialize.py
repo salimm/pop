@@ -14,21 +14,13 @@ class Serializer():
     __metaclass__ = ABCMeta
     
     @abstractmethod
-    def serialize(self,  gen, obj, outstream):
+    def serialize(self, gen, obj, outstream):
         '''
         Is called by the serializer when trying to serialize this class
         :param gen:
         :param outstream:
         '''
         raise Exception('Not implemented');
-    
-    @abstractmethod
-    def handled_class(self):
-        '''
-            returns the handled class
-        '''
-        raise Exception('Not implemented'); 
-    
     
     
 
@@ -40,7 +32,7 @@ class DataFormatGenerator():
     
     __metaclass__ = ABCMeta
     
-    __slots__ = ['_pdict','_serializers']
+    __slots__ = ['_pdict', '_serializers']
     
     
     def __init__(self, pdict):
@@ -90,9 +82,9 @@ class DataFormatGenerator():
         :param outstream:
         '''
         # first attempt using an existing custom serializer
-        serializer = self._serializers.get(getattr(val,'__class__'),None)
+        serializer = self._serializers.get(getattr(val, '__class__'), None)
         if serializer is not None:
-            serializer.serialize(self,val,outstream)
+            serializer.serialize(self,val, outstream)
             return
         
         fields = self._fetch_obj_fields(val)
@@ -239,8 +231,8 @@ class DataFormatGenerator():
         self._pdict.write_dict_field_name(name, outstream)
         
         
-    def register_serializer(self, serializer):
-        self._serializers[serializer.handled_class()] = serializer
+    def register_serializer(self, cls, serializer):
+        self._serializers[cls] = serializer
 
     
     

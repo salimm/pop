@@ -3,8 +3,7 @@ Created on Dec 26, 2017
 
 @author: Salim
 '''
-from pylods.deserialize import EventStream, Typed, POPState
-from umsgpack import UnsupportedTypeException
+from pylods.deserialize import  Typed, POPState
 from pylods.error import UnexpectedStateException, \
     ObjectDeserializationException, ParseException
 from abc import ABCMeta
@@ -68,36 +67,36 @@ class ObjectMapper(DataFormatGenerator):
     
     __classmeta__ = ABCMeta
     
-    __slots__ = [ '__deserializers', '__events']
+    __slots__ = [ '__deserializers']
     
     
-    def __init__(self, pdict, events=None):
+    def __init__(self, pdict):
         super(ObjectMapper, self).__init__(pdict) 
         self.__deserializers = {}
-        self.__events = self.prepare_input(events)
+#         events = self.prepare_input(events)
         self.register_module(DecoratorsModule())
         
         
     
-    def prepare_input(self, events):
-        if events is None:
-            return None   
-        if isinstance(events, EventStream):
-            return events
-        else:
-            raise UnsupportedTypeException('Input can only be an ' + str(EventStream) + ' instance!!')
+#     def prepare_input(self, events):
+#         if events is None:
+#             return None   
+#         if isinstance(events, EventStream):
+#             return events
+#         else:
+#             raise UnsupportedTypeException('Input can only be an ' + str(EventStream) + ' instance!!')
     
-    def read_value(self):
-        val = self._pdict.read_value(self.__events.next())
+    def read_value(self, events):
+        val = self._pdict.read_value(events.next())
         return val
             
 
-    def read_obj_propery_name(self):
-        propname = self._pdict.read_value(self.__events.next());
+    def read_obj_propery_name(self, events):
+        propname = self._pdict.read_value(events.next());
         return propname
     
         
-    def read_obj(self, cls=dict, state=POPState.EXPECTING_OBJ_START):
+    def read_obj(self, events, cls=dict, state=POPState.EXPECTING_OBJ_START):
         cnt = 0
         if state is POPState.EXPECTING_OBJ_START:
             cnt = 0;
@@ -107,14 +106,13 @@ class ObjectMapper(DataFormatGenerator):
             raise Exception("Couldn't start reading an obejct at this state: " + str(state))
         deserializer = self.__deserializers.get(cls, None)
         if deserializer:
-            val = deserializer.execute(self.__events, self._pdict, count=cnt)
+            val = deserializer.execute(events, self._pdict, count=cnt)
         else:    
-            val = self._read_obj(cls, state)
+            val = self._read_obj(events, cls, state)
         return val    
         
-    def _read_obj(self, cls=dict, state=POPState.EXPECTING_OBJ_START):
+    def _read_obj(self, events, cls=dict, state=POPState.EXPECTING_OBJ_START):
         
-        events = self.__events
         obj = cls()
         if state is POPState.EXPECTING_OBJ_START:
             # setting to object start state
@@ -147,7 +145,7 @@ class ObjectMapper(DataFormatGenerator):
             elif state is POPState.EXPECTING_VALUE:
                 val = None
                 if self._pdict.is_array_start(event):
-                    val = self.read_array(POPState.EXPECTING_VALUE_OR_ARRAY_END, cls, propname)
+                    val = self.read_array(events, POPState.EXPECTING_VALUE_OR_ARRAY_END, cls, propname)
                 elif self._pdict.is_value(event):
                     # check valid state
                     if state is not POPState.EXPECTING_VALUE:
@@ -155,7 +153,7 @@ class ObjectMapper(DataFormatGenerator):
                     # read value
                     val = self._pdict.read_value(event)
                 elif self._pdict.is_obj_start(event):
-                    val = self._read_obj_as_value(cls, propname)
+                    val = self._read_obj_as_value(events,cls, propname)
                 else:
                     raise Exception('unrecognized event when reading value: ' + str(event))
                 # setting value
@@ -174,8 +172,7 @@ class ObjectMapper(DataFormatGenerator):
             
         raise UnexpectedStateException(state, POPState.EX, " wasn't expecting a value")
             
-    def read_array(self, state=POPState.EXPECTING_ARRAY_START, cls=None, propname=None):
-        events = self.__events
+    def read_array(self, events, state=POPState.EXPECTING_ARRAY_START, cls=None, propname=None):
         res = []
         
         if state is POPState.EXPECTING_ARRAY_START:
@@ -201,7 +198,7 @@ class ObjectMapper(DataFormatGenerator):
                 val = self._pdict.read_value(event)
                 res.append(val)
             elif self._pdict.is_obj_start(event):
-                val = self._read_obj_as_value(cls, propname)
+                val = self._read_obj_as_value(events,cls, propname)
                 res.append(val)
             else:
                 raise Exception('Unexpected event')
@@ -212,19 +209,18 @@ class ObjectMapper(DataFormatGenerator):
 
     
 
-    def _read_obj_as_value(self, cls=None, valname=None):
-        if cls is not None and valname is not None:
+    def _read_obj_as_value(self, events, cls=dict, valname=None):
+        if cls is not dict and valname is not None:
             # attempt to resolve class of value
             valcls = Typed.resolve(valname, cls)
-        if cls is not None and valname is None:
+        if cls is not dict and valname is None:
             valcls = cls
-        if valcls is None:  # if not resolved simply convert to dictionary
-            valcls = dict
+            
         deserializer = self.__deserializers.get(valcls, None)
         if deserializer:
-            val = deserializer.execute(self.__events, self._pdict, count=1)
+            val = deserializer.execute(events, self._pdict, count=1)
         else:    
-            val = self._read_obj(valcls, POPState.EXPECTING_OBJ_PROPERTY_OR_END)
+            val = self._read_obj(events, valcls, POPState.EXPECTING_OBJ_PROPERTY_OR_END)
         return val
         
     
@@ -238,3 +234,22 @@ class ObjectMapper(DataFormatGenerator):
     
     def register_deserializer(self, cls, deserializer):
         self.__deserializers[cls] = deserializer
+        
+        
+    def copy(self):
+        '''
+         makes a clone copy of the mapper. It won't clone the serializers or deserializers and it won't copy the events
+        '''
+        try:
+            tmp = self.__class__()
+        except Exception:
+            tmp = self.__class__(self._pdict)
+            
+        tmp._serializers = self._serializers
+        tmp.__deserializers = self.__deserializers
+
+        return tmp
+    
+    
+        
+        
