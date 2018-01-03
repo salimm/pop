@@ -5,7 +5,8 @@ Created on Nov 26, 2017
 '''
 
 
-class ObjectDeserializationException(Exception):
+
+class ParseException(Exception):
     '''
         Exception to FormatTypeNotAcceptable
     '''
@@ -13,7 +14,15 @@ class ObjectDeserializationException(Exception):
         Exception.__init__(self, msg)
         
         
-class UnexpectedStateException(Exception):
+class ObjectDeserializationException(ParseException):
+    '''
+        Exception to FormatTypeNotAcceptable
+    '''
+    def __init__(self, msg):
+        Exception.__init__(self, msg)
+        
+        
+class UnexpectedStateException(ParseException):
     '''
         Exception to FormatTypeNotAcceptable
     '''
@@ -23,12 +32,6 @@ class UnexpectedStateException(Exception):
             txt = txt + " but state was " + str(state)
         
         if msg is not None:
-            txt = txt + " with message: " + msg;
+            txt = txt + " with message: " + str(msg);
         Exception.__init__(self, txt)
 
-class ParseException(Exception):
-    '''
-        Exception to FormatTypeNotAcceptable
-    '''
-    def __init__(self, msg):
-        Exception.__init__(self, msg)

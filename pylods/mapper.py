@@ -103,7 +103,7 @@ class ObjectMapper(DataFormatGenerator):
         elif state is POPState.EXPECTING_VALUE:
             cnt = 1
         else:
-            raise Exception("Couldn't start reading an obejct at this state: " + str(state))
+            raise ParseException("Couldn't start reading an obejct at this state: " + str(state))
         deserializer = self.__deserializers.get(cls, None)
         if deserializer:
             val = deserializer.execute(events, self._pdict, count=cnt)
@@ -155,7 +155,7 @@ class ObjectMapper(DataFormatGenerator):
                 elif self._pdict.is_obj_start(event):
                     val = self._read_obj_as_value(events,cls, propname)
                 else:
-                    raise Exception('unrecognized event when reading value: ' + str(event))
+                    raise ParseException('unrecognized event when reading value: ' + str(event))
                 # setting value
                 if cls is dict:
                     obj[propname] = val
@@ -201,7 +201,7 @@ class ObjectMapper(DataFormatGenerator):
                 val = self._read_obj_as_value(events,cls, propname)
                 res.append(val)
             else:
-                raise Exception('Unexpected event')
+                raise ParseException('Unexpected event')
             
             
             
@@ -209,12 +209,14 @@ class ObjectMapper(DataFormatGenerator):
 
     
 
-    def _read_obj_as_value(self, events, cls=dict, valname=None):
-        if cls is not dict and valname is not None:
+    def _read_obj_as_value(self, events, cls=None, valname=None):
+        if cls is not None and valname is not None:
             # attempt to resolve class of value
             valcls = Typed.resolve(valname, cls)
-        if cls is not dict and valname is None:
+        if cls is not None and valname is None:
             valcls = cls
+        if valcls is None:
+            valcls = dict
             
         deserializer = self.__deserializers.get(valcls, None)
         if deserializer:
