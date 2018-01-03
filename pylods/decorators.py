@@ -3,11 +3,13 @@ Created on Dec 26, 2017
 
 @author: Salim
 '''
+from pylods.mapper import DecoratorsModule
+from pylods.deserialize import Typed
 
 def rename_attr(name, newname):
     def inner_rename_attr(cls):
-        _create_pylods_property(cls,'namedecode')
-        _create_pylods_property(cls,'nameencode')
+        _create_pylods_property(cls, 'namedecode')
+        _create_pylods_property(cls, 'nameencode')
         cls._pylods['nameencode'][name] = newname
         cls._pylods['namedecode'][newname] = name
         return cls
@@ -18,17 +20,41 @@ def rename_attr(name, newname):
 
 def ignore_attr(name):
     def inner_ignore_attr(cls):
-        _create_pylods_property(cls,'ignore')
+        _create_pylods_property(cls, 'ignore')
         cls._pylods['ignore'][name] = True
         return cls
     return inner_ignore_attr
 
+
+def use_serializer(serializer):
+    def inner_use_serializer(cls):
+        DecoratorsModule.register_serializer(cls, serializer)
+        return cls
+    return inner_use_serializer
+
+def type_attr(name, typecls):
+    def inner_type_attr(cls):
+        Typed.register_type( name, typecls, cls)
+        return cls
+    return inner_type_attr
+
+def use_deserializer(deserializer):
+    def inner_use_deserializer(cls):
+        DecoratorsModule.register_deserializer(cls, deserializer)
+        return cls
+    return inner_use_deserializer
+
 def _create_pylods_property(cls, name):
-    if(not hasattr(cls,"_pylods")):
-        cls._pylods = {}
+    _create_pylods(cls)
     if not name in cls._pylods:
         cls._pylods[name] = {}
         
-        
+def _create_pylods(cls):
+    if(not hasattr(cls, "_pylods")):
+        cls._pylods = {}
+
+
+
+
 
     

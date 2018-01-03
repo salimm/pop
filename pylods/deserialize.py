@@ -179,9 +179,7 @@ class Parser():
         if type(data) is types.StringType:
             data = BytesIO(data);
             data.seek(0)
-        if type(data) is types.FileType:
-            pass
-        elif isinstance(data, IOBase):
+        if hasattr(data,'read'):
             pass
         else:
             raise UnsupportedTypeException('input should be of one the types [str, IOBase, file] but ' + str(type(data)) + " was received!!")

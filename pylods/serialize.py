@@ -84,7 +84,7 @@ class DataFormatGenerator():
         # first attempt using an existing custom serializer
         serializer = self._serializers.get(getattr(val, '__class__'), None)
         if serializer is not None:
-            serializer.serialize(self,val, outstream)
+            serializer.serialize(self, val, outstream)
             return
         
         fields = self._fetch_obj_fields(val)
@@ -170,6 +170,8 @@ class DataFormatGenerator():
         return mappedname
     
     def _decode_field_name(self, obj, name):
+        if isinstance(obj, dict):
+            return name
         # 1. check to rename fields using decorator
         if hasattr(obj, '_pylods'):            
             if 'namedecode' in obj.__class__._pylods and name in obj._pylods['namedecode']:
@@ -177,12 +179,13 @@ class DataFormatGenerator():
         # 2. check to ignore fields based on decorators
         # 3. remove private convention _
         fields = self._fetch_obj_fields(obj)
-        if name in fields:
+        properties=[p for p in dir(getattr(obj,"__class__")) if isinstance(getattr(getattr(obj,"__class__"),p),property)]
+        if name in fields or name in properties:
             return name
-        elif "_" + name in fields:
+        elif "_" + name in fields or properties:
             return "_" + name
         else:
-            raise Exception("property couldn't be mapped to a property in object")
+            raise Exception("property \"" + str(name) + "\" couldn't be mapped to a property in object " + str(getattr(obj,"__class__")))
         
     ######################### ARRAY
     
