@@ -6,13 +6,48 @@ Created on Nov 26, 2017
 from abc import ABCMeta, abstractmethod
 from enum import Enum
 from _pyio import __metaclass__
-from io import IOBase
 import types
 from io import BytesIO
 from umsgpack import UnsupportedTypeException
     
     
+class DeserializationContext():
     
+    def __init__(self):
+        self.__attributes = {}
+        
+        
+    def set_attribute(self, key, val):
+        self.__attributes[key] = val
+
+    def get_attribute(self, key):
+        '''
+            returns attribute from the attribute map. It will return None if it doens't exist
+        :param key:
+        '''
+        self.__attributes.get(key, None)
+        
+        
+    def copy_all(self, ctxt):
+        '''
+         copies all values into the current context from given context
+        :param ctxt:
+        '''
+        for key, value  in ctxt.iteritems:
+            self.set_attribute(key,value)
+        
+        
+    @classmethod 
+    def create_context(cls, items=[]):
+        ctxt = DeserializationContext()
+        if items is not None:
+            for key,value in items:
+                ctxt.set_attribute(key, value)
+        return ctxt
+    
+    
+    
+        
 class Deserializer():
     '''
         Base Deserializer class. It only specifies that it needs a handled_class method
@@ -20,7 +55,7 @@ class Deserializer():
     __metaclass__ = ABCMeta
     
     @abstractmethod
-    def execute(self, events, pdict, count):
+    def execute(self, events, pdict, count, ctxt ):
         raise Exception('Not implemented');
     
     
@@ -32,9 +67,9 @@ class EventBasedDeserializer(Deserializer):
     '''
     __metaclass__ = ABCMeta
     
-    def execute(self, events, pdict, count):
+    def execute(self, events, pdict, count, ctxt):
         tmp = EventStream(ClassEventIterator(events,pdict, count))
-        val = self.deserialize(tmp, pdict)
+        val = self.deserialize(tmp, pdict, ctxt)
         try:
             while tmp.next():
                 pass
@@ -45,7 +80,7 @@ class EventBasedDeserializer(Deserializer):
             
     
     @abstractmethod
-    def deserialize(self, events, pdict):
+    def deserialize(self, events, pdict, ctxt=None):
         raise Exception('Not implemented');
     
     
@@ -76,10 +111,10 @@ class ClassEventIterator(object):
                 self._count = self._count - 1
                 if self._count == 0:
                     self._isdone = True
-                    return None
+                    raise StopIteration()
             return event
         else:
-            return event
+            return None
         
         
 
