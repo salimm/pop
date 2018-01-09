@@ -25,10 +25,18 @@ def ignore_attr(name):
         return cls
     return inner_ignore_attr
 
+def order_attr(name, order):
+    def inner_order_attr(cls):
+        _create_pylods_property(cls, 'order')
+        cls._pylods['order'][name] = order
+        return cls
+    return inner_order_attr
+
 
 def use_serializer(serializer):
     def inner_use_serializer(cls):
-        DecoratorsModule.register_serializer(cls, serializer)
+        _create_pylods_property(cls, 'serializer')
+        cls._pylods['serializer'] = serializer()
         return cls
     return inner_use_serializer
 
@@ -40,7 +48,8 @@ def type_attr(name, typecls):
 
 def use_deserializer(deserializer):
     def inner_use_deserializer(cls):
-        DecoratorsModule.register_deserializer(cls, deserializer)
+        _create_pylods_property(cls, 'deserializer')
+        cls._pylods['deserializer'] = deserializer()
         return cls
     return inner_use_deserializer
 

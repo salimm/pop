@@ -3,13 +3,15 @@ Created on Dec 26, 2017
 
 @author: Salim
 '''
-from pylods.deserialize import  Typed, POPState
+from pylods.deserialize import  Typed, POPState, DeserializationContext
 from pylods.error import UnexpectedStateException, \
     ObjectDeserializationException, ParseException
 from abc import ABCMeta
 from pylods.serialize import DataFormatGenerator
 
 
+    
+        
 class Module():
     '''
         A Module contains customer serializer/deserializers.
@@ -60,6 +62,7 @@ class DecoratorsModule(Module):
     def register_deserializer(cls, dcls, deserializer):
         cls.all_deserializers[dcls ] = deserializer();
 
+
 class ObjectMapper(DataFormatGenerator):
     '''
         Main Parser class to deserialize to objects, values and etc. This parser requires a dictionary to serialize/ deserialize from an input stream
@@ -91,28 +94,29 @@ class ObjectMapper(DataFormatGenerator):
         return val
             
 
-    def read_obj_propery_name(self, events):
+    def read_obj_property_name(self, events):
         propname = self._pdict.read_value(events.next());
         return propname
     
         
-    def read_obj(self, events, cls=dict, state=POPState.EXPECTING_OBJ_START):
+    def read_obj(self, events, cls=dict, state=POPState.EXPECTING_OBJ_START, ctxt=DeserializationContext.create_context()):
         cnt = 0
         if state is POPState.EXPECTING_OBJ_START:
             cnt = 0;
-        elif state is POPState.EXPECTING_VALUE:
+        elif state is POPState.EXPECTING_OBJ_PROPERTY_OR_END:
             cnt = 1
         else:
-            raise ParseException("Couldn't start reading an obejct at this state: " + str(state))
-        deserializer = self.__deserializers.get(cls, None)
+            raise ParseException("Couldn't start reading an object at this state: " + str(state))
+        deserializer = self.__lookup_deserializer(cls)
         if deserializer:
-            val = deserializer.execute(events, self._pdict, count=cnt)
+            val = deserializer.execute(events, self._pdict, count=cnt, ctxt=ctxt)
         else:    
-            val = self._read_obj(events, cls, state)
+            val = self._read_obj(events, cls, state, ctxt)
         return val    
+    
+    
         
-    def _read_obj(self, events, cls=dict, state=POPState.EXPECTING_OBJ_START):
-        
+    def _read_obj(self, events, cls=dict, state=POPState.EXPECTING_OBJ_START, ctxt=DeserializationContext.create_context()):
         obj = cls()
         if state is POPState.EXPECTING_OBJ_START:
             # setting to object start state
@@ -145,7 +149,7 @@ class ObjectMapper(DataFormatGenerator):
             elif state is POPState.EXPECTING_VALUE:
                 val = None
                 if self._pdict.is_array_start(event):
-                    val = self.read_array(events, POPState.EXPECTING_VALUE_OR_ARRAY_END, cls, propname)
+                    val = self.read_array(events, POPState.EXPECTING_VALUE_OR_ARRAY_END, cls, propname, ctxt)
                 elif self._pdict.is_value(event):
                     # check valid state
                     if state is not POPState.EXPECTING_VALUE:
@@ -153,7 +157,7 @@ class ObjectMapper(DataFormatGenerator):
                     # read value
                     val = self._pdict.read_value(event)
                 elif self._pdict.is_obj_start(event):
-                    val = self._read_obj_as_value(events,cls, propname)
+                    val = self._read_obj_as_value(events, cls, propname, ctxt)
                 else:
                     raise ParseException('unrecognized event when reading value: ' + str(event))
                 # setting value
@@ -172,7 +176,7 @@ class ObjectMapper(DataFormatGenerator):
             
         raise UnexpectedStateException(state, POPState.EX, " wasn't expecting a value")
             
-    def read_array(self, events, state=POPState.EXPECTING_ARRAY_START, cls=None, propname=None):
+    def read_array(self, events, state=POPState.EXPECTING_ARRAY_START, cls=None, propname=None, ctxt=DeserializationContext.create_context()):
         res = []
         
         if state is POPState.EXPECTING_ARRAY_START:
@@ -198,18 +202,17 @@ class ObjectMapper(DataFormatGenerator):
                 val = self._pdict.read_value(event)
                 res.append(val)
             elif self._pdict.is_obj_start(event):
-                val = self._read_obj_as_value(events,cls, propname)
+                val = self._read_obj_as_value(events, cls, propname, ctxt)
                 res.append(val)
             else:
                 raise ParseException('Unexpected event')
-            
-            
             
             event = events.next()
 
     
 
-    def _read_obj_as_value(self, events, cls=None, valname=None):
+    def _read_obj_as_value(self, events, cls=None, valname=None, ctxt=DeserializationContext.create_context()):
+        valcls = None
         if cls is not None and valname is not None:
             # attempt to resolve class of value
             valcls = Typed.resolve(valname, cls)
@@ -217,14 +220,21 @@ class ObjectMapper(DataFormatGenerator):
             valcls = cls
         if valcls is None:
             valcls = dict
-            
-        deserializer = self.__deserializers.get(valcls, None)
+        deserializer = self.__lookup_deserializer(valcls)
         if deserializer:
-            val = deserializer.execute(events, self._pdict, count=1)
+            val = deserializer.execute(events, self._pdict, count=1, ctxt=ctxt)
         else:    
-            val = self._read_obj(events, valcls, POPState.EXPECTING_OBJ_PROPERTY_OR_END)
+            val = self._read_obj(events, valcls, POPState.EXPECTING_OBJ_PROPERTY_OR_END, ctxt)
         return val
+     
+    
+    def __lookup_deserializer(self, cls):
+        deserializer = self.__deserializers.get(cls, None)
+        if deserializer is None and hasattr(cls, '_pylods'):
+            return cls._pylods.get('deserializer',None)
         
+        return None
+    
     
     def register_module(self, module):
         for serializer in module.serializers.items():

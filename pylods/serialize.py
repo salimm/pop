@@ -82,7 +82,7 @@ class DataFormatGenerator():
         :param outstream:
         '''
         # first attempt using an existing custom serializer
-        serializer = self._serializers.get(getattr(val, '__class__'), None)
+        serializer = self.__lookup_serializer(getattr(val, '__class__'))
         if serializer is not None:
             serializer.serialize(self, val, outstream)
             return
@@ -150,8 +150,27 @@ class DataFormatGenerator():
         else:
             return [];
         
+        fields = self._sort_obj_fields(obj, fields)
         return fields
-
+    
+    def _sort_obj_fields(self, obj, fields):
+        cls = getattr(obj, '__class__')
+        if hasattr(cls, '_pylods') and  'order' in cls._pylods:
+            tmp = self.__attach_order(cls, fields)
+            tmp = sorted(tmp, key=lambda item: item[1])
+            fields = [i[0] for i in tmp]
+        return fields
+    
+    
+    def __attach_order(self, cls, fields):
+        attached = [None] * len(fields)
+        for i in range(len(fields)):
+            name = fields[i]
+            if name in cls._pylods['order']:
+                attached[i] = (name,cls._pylods['order'][name])
+            else:
+                attached[i] = (name,9999999999)     
+        return attached           
     
     def _encode_field_name(self, obj, name):
         mappedname = name;
@@ -236,6 +255,14 @@ class DataFormatGenerator():
         
     def register_serializer(self, cls, serializer):
         self._serializers[cls] = serializer
+
+
+    def __lookup_serializer(self, cls):
+        deserializer = self._serializers.get(cls, None)
+        if deserializer is None and hasattr(cls, '_pylods'):
+            return cls._pylods.get('serializer',None)
+        
+        return None
 
     
     

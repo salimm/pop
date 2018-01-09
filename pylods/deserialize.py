@@ -20,12 +20,12 @@ class DeserializationContext():
     def set_attribute(self, key, val):
         self.__attributes[key] = val
 
-    def get_attribute(self, key):
+    def get_attribute(self, key, default=None):
         '''
             returns attribute from the attribute map. It will return None if it doens't exist
         :param key:
         '''
-        self.__attributes.get(key, None)
+        return self.__attributes.get(key, default)
         
         
     def copy_all(self, ctxt):
