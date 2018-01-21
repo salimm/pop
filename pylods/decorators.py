@@ -3,11 +3,13 @@ Created on Dec 26, 2017
 
 @author: Salim
 '''
-from pylods.mapper import DecoratorsModule
 from pylods.deserialize import Typed
 
-def rename_attr(name, newname):
+def rename_attr(oldname, newname):
     def inner_rename_attr(cls):
+        name = oldname
+        if name.startswith("__"):
+            name = "_" + cls.__name__ + oldname
         _create_pylods_property(cls, 'namedecode')
         _create_pylods_property(cls, 'nameencode')
         cls._pylods['nameencode'][name] = newname
@@ -42,7 +44,7 @@ def use_serializer(serializer):
 
 def type_attr(name, typecls):
     def inner_type_attr(cls):
-        Typed.register_type( name, typecls, cls)
+        Typed.register_type(name, typecls, cls)
         return cls
     return inner_type_attr
 
