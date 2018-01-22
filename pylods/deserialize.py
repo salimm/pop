@@ -8,7 +8,6 @@ from enum import Enum
 from _pyio import __metaclass__
 import types
 from io import BytesIO
-from umsgpack import UnsupportedTypeException
     
     
 class DeserializationContext():
@@ -217,7 +216,7 @@ class Parser():
         if hasattr(data,'read'):
             pass
         else:
-            raise UnsupportedTypeException('input should be of one the types [str, IOBase, file] but ' + str(type(data)) + " was received!!")
+            raise Exception('input should be of one the types [str, IOBase, file] but ' + str(type(data)) + " was received!!")
         
         return self._gen_events(data)
         
