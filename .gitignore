@@ -5,3 +5,5 @@
 *.pyc
 dist
 build
+*.json
+pylods.egg-info/
