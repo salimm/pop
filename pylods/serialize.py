@@ -155,7 +155,7 @@ class DataFormatGenerator():
     
     def _sort_obj_fields(self, obj, fields):
         cls = getattr(obj, '__class__')
-        if hasattr(cls, '_pylods') and  'order' in cls._pylods:
+        if hasattr(cls, '_pylods') and  cls in cls._pylods and  'order' in cls._pylods[cls]:
             tmp = self.__attach_order(cls, fields)
             tmp = sorted(tmp, key=lambda item: item[1])
             fields = [i[0] for i in tmp]
@@ -166,8 +166,8 @@ class DataFormatGenerator():
         attached = [None] * len(fields)
         for i in range(len(fields)):
             name = fields[i]
-            if name in cls._pylods['order']:
-                attached[i] = (name,cls._pylods['order'][name])
+            if name in cls._pylods[cls]['order']:
+                attached[i] = (name,cls._pylods[cls]['order'][name])
             else:
                 attached[i] = (name,9999999999)     
         return attached           
@@ -177,11 +177,12 @@ class DataFormatGenerator():
         
         # 1. check to rename fields using decorator
 #         print(obj)
-        if hasattr(obj, '_pylods'):
-            if 'ignore' in obj.__class__._pylods and name in obj._pylods['ignore']:
+        cls = getattr(obj,"__class__")
+        if hasattr(obj, '_pylods') and cls in cls._pylods :
+            if 'ignore' in obj.__class__._pylods[cls] and name in obj._pylods[cls]['ignore']:
                 return None 
-            if 'nameencode' in obj.__class__._pylods and name in obj._pylods['nameencode']:
-                return obj._pylods['nameencode'][name]
+            if 'nameencode' in obj.__class__._pylods[cls] and name in obj._pylods[cls]['nameencode']:
+                return obj._pylods[cls]['nameencode'][name]
         # 2. check to ignore fields based on decorators
         # 3. remove private convention _
         if mappedname.startswith('_'):
@@ -192,9 +193,10 @@ class DataFormatGenerator():
         if isinstance(obj, dict):
             return name
         # 1. check to rename fields using decorator
+        cls = getattr(obj,"__class__")
         if hasattr(obj, '_pylods'):            
-            if 'namedecode' in obj.__class__._pylods and name in obj._pylods['namedecode']:
-                return obj._pylods['namedecode'][name]
+            if 'namedecode' in obj.__class__._pylods[cls] and name in obj._pylods[cls]['namedecode']:
+                return obj._pylods[cls]['namedecode'][name]
         # 2. check to ignore fields based on decorators
         # 3. remove private convention _
         fields = self._fetch_obj_fields(obj)
@@ -260,7 +262,7 @@ class DataFormatGenerator():
     def __lookup_serializer(self, cls):
         deserializer = self._serializers.get(cls, None)
         if deserializer is None and hasattr(cls, '_pylods'):
-            return cls._pylods.get('serializer',None)
+            return cls._pylods[cls].get('serializer',None)
         
         return None
 

@@ -33,14 +33,14 @@ class DeserializationContext():
         :param ctxt:
         '''
         for key, value  in ctxt.iteritems:
-            self.set_attribute(key,value)
+            self.set_attribute(key, value)
         
         
     @classmethod 
     def create_context(cls, items=[]):
         ctxt = DeserializationContext()
         if items is not None:
-            for key,value in items:
+            for key, value in items:
                 ctxt.set_attribute(key, value)
         return ctxt
     
@@ -54,7 +54,7 @@ class Deserializer():
     __metaclass__ = ABCMeta
     
     @abstractmethod
-    def execute(self, events, pdict, count, ctxt ):
+    def execute(self, events, pdict, count, ctxt):
         raise Exception('Not implemented');
     
     
@@ -67,7 +67,7 @@ class EventBasedDeserializer(Deserializer):
     __metaclass__ = ABCMeta
     
     def execute(self, events, pdict, count, ctxt):
-        tmp = EventStream(ClassEventIterator(events,pdict, count))
+        tmp = EventStream(ClassEventIterator(events, pdict, count))
         val = self.deserialize(tmp, pdict, ctxt)
         try:
             while tmp.next():
@@ -85,7 +85,7 @@ class EventBasedDeserializer(Deserializer):
     
 class ClassEventIterator(object):
     
-    def __init__(self, events,pdict, count=0):
+    def __init__(self, events, pdict, count=0):
         self._events = events
         self._count = count
         self._pdict = pdict
@@ -213,7 +213,7 @@ class Parser():
         if type(data) is types.StringType:
             data = BytesIO(data);
             data.seek(0)
-        if hasattr(data,'read'):
+        if hasattr(data, 'read'):
             pass
         else:
             raise Exception('input should be of one the types [str, IOBase, file] but ' + str(type(data)) + " was received!!")

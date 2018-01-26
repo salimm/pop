@@ -117,7 +117,10 @@ class ObjectMapper(DataFormatGenerator):
     
         
     def _read_obj(self, events, cls=dict, state=POPState.EXPECTING_OBJ_START, ctxt=DeserializationContext.create_context()):
-        obj = cls()
+        try:
+            obj = cls()
+        except:
+            raise Exception("Failed to instantiate cls" + str(cls))
         if state is POPState.EXPECTING_OBJ_START:
             # setting to object start state
             first = events.next();
@@ -204,6 +207,9 @@ class ObjectMapper(DataFormatGenerator):
             elif self._pdict.is_obj_start(event):
                 val = self._read_obj_as_value(events, cls, propname, ctxt)
                 res.append(val)
+            elif self._pdict.is_array_start(event):
+                val = self.read_array(events, POPState.EXPECTING_VALUE_OR_ARRAY_END, cls, propname, ctxt)
+                res.append(val)
             else:
                 raise ParseException('Unexpected event')
             
@@ -231,7 +237,7 @@ class ObjectMapper(DataFormatGenerator):
     def __lookup_deserializer(self, cls):
         deserializer = self.__deserializers.get(cls, None)
         if deserializer is None and hasattr(cls, '_pylods'):
-            return cls._pylods.get('deserializer',None)
+            return cls._pylods[cls].get('deserializer', None)
         
         return None
     
