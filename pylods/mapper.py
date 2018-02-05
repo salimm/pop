@@ -112,6 +112,7 @@ class ObjectMapper(DataFormatGenerator):
             val = deserializer.execute(events, self._pdict, count=cnt, ctxt=ctxt)
         else:    
             val = self._read_obj(events, cls, state, ctxt)
+            
         return val    
     
     

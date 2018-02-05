@@ -209,14 +209,14 @@ class Parser():
     
     def parse(self, data):
         
-        
+            
         if type(data) is types.StringType:
             data = BytesIO(data);
             data.seek(0)
         if hasattr(data, 'read'):
             pass
         else:
-            raise Exception('input should be of one the types [str, IOBase, file] but ' + str(type(data)) + " was received!!")
+            raise Exception('input should be of one the types [str, IOBase, file] but ' + str(data.__class__) + " was received!!")
         
         return self._gen_events(data)
         
