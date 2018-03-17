@@ -146,7 +146,7 @@ class DataFormatGenerator():
         if  hasattr(obj, '__dict__'):
             fields = [f for f in obj.__dict__.keys() if not callable(obj.__dict__[f])]
         elif hasattr(obj, '__slots__'):
-            fields = [f for f in obj.__slots__.keys() if not callable(obj.__slots__[f])]
+            fields = [f for f in obj.__slots__ if not callable(getattr(obj,f))]
         else:
             return [];
         

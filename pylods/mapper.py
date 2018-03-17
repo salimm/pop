@@ -193,6 +193,7 @@ class ObjectMapper(DataFormatGenerator):
         state = POPState.EXPECTING_VALUE_OR_ARRAY_END    
         event = events.next()
         while event:
+#             pass
             # end of object
             if self._pdict.is_array_end(event):
                 # check valid state
@@ -213,7 +214,7 @@ class ObjectMapper(DataFormatGenerator):
                 res.append(val)
             else:
                 raise ParseException('Unexpected event')
-            
+#             
             event = events.next()
 
     
