@@ -193,7 +193,6 @@ class ObjectMapper(DataFormatGenerator):
         state = POPState.EXPECTING_VALUE_OR_ARRAY_END    
         event = events.next()
         while event:
-#             pass
             # end of object
             if self._pdict.is_array_end(event):
                 # check valid state
@@ -241,7 +240,7 @@ class ObjectMapper(DataFormatGenerator):
         if deserializer is None and hasattr(cls, '_pylods'):
             return cls._pylods[cls].get('deserializer', None)
         
-        return None
+        return deserializer;
     
     
     def register_module(self, module):
