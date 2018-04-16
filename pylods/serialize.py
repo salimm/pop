@@ -23,7 +23,13 @@ class Serializer():
         raise Exception('Not implemented');
     
     
+    
+def sort_obj_fields(lst):    
+    return sorted(lst, key=lambda item: item[1])
 
+
+def extract_property_names(obj):
+    return [p for p in dir(getattr(obj,"__class__")) if isinstance(getattr(getattr(obj,"__class__"),p),property)]
 
 class DataFormatGenerator():
     '''
@@ -157,7 +163,7 @@ class DataFormatGenerator():
         cls = getattr(obj, '__class__')
         if hasattr(cls, '_pylods') and  cls in cls._pylods and  'order' in cls._pylods[cls]:
             tmp = self.__attach_order(cls, fields)
-            tmp = sorted(tmp, key=lambda item: item[1])
+            tmp = sort_obj_fields(tmp);            
             fields = [i[0] for i in tmp]
         return fields
     
@@ -200,7 +206,7 @@ class DataFormatGenerator():
         # 2. check to ignore fields based on decorators
         # 3. remove private convention _
         fields = self._fetch_obj_fields(obj)
-        properties=[p for p in dir(getattr(obj,"__class__")) if isinstance(getattr(getattr(obj,"__class__"),p),property)]
+        properties = extract_property_names(obj)
         if name in fields or name in properties:
             return name
         elif "_" + name in fields or properties:

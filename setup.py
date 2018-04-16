@@ -1,4 +1,15 @@
-from setuptools import setup
+from setuptools import setup, Extension
+
+
+module1 = Extension('pylodscext',
+                    sources = [
+                               'pylodsc/src/pylodsc.cpp',
+                               'pylodsc/src/pylodscapi.cpp'
+                               ],
+#                     libraries=['libs/'],
+                    include_dirs=['pylodsc/include/'],
+                    language = "c++"                     
+                    )
 
 setup(
   name = 'pylods',
@@ -13,4 +24,5 @@ setup(
   keywords = ['python','serialization','deserialization','paser','json','msgpack','object oriented','fast','extendable','type based','jackson json'], # arbitrary keywords
   classifiers = ['Programming Language :: Python'],
   install_requires=['enum34'],
+  ext_modules = [module1]
 )

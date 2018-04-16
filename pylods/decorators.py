@@ -3,7 +3,6 @@ Created on Dec 26, 2017
 
 @author: Salim
 '''
-from pylods.deserialize import Typed
 
 def rename_attr(oldname, newname):
     def inner_rename_attr(cls):
@@ -43,10 +42,15 @@ def use_serializer(serializer):
     return inner_use_serializer
 
 def type_attr(name, typecls):
-    def inner_type_attr(cls):
-        Typed.register_type(name, typecls, cls)
+    def inner_order_attr(cls):
+        _create_pylods_property(cls, 'type')
+        cls._pylods[cls]['type'][name] = typecls
         return cls
-    return inner_type_attr
+    return inner_order_attr
+#     def inner_type_attr(cls):
+#         Typed.register_type(name, typecls, cls)
+#         return cls
+#     return inner_type_attr
 
 def use_deserializer(deserializer):
     def inner_use_deserializer(cls):

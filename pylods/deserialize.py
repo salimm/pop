@@ -1,6 +1,5 @@
 '''
 Created on Nov 26, 2017
-
 @author: Salim
 '''
 from abc import ABCMeta, abstractmethod
@@ -8,6 +7,7 @@ from enum import Enum
 from _pyio import __metaclass__
 import types
 from io import BytesIO
+from pylods.serialize import DataFormatGenerator
     
     
 class DeserializationContext():
@@ -225,7 +225,7 @@ class Parser():
             generates events using the specific parser
         :param instream:
         '''
-        return EventStream(self._pdict.gen_events(instream))
+        return self._pdict.gen_events(instream)
         
     
 class EventStream():
@@ -233,19 +233,108 @@ class EventStream():
         Wrapper Iterator as output of Parser
     '''
     
-    def __init__(self, events):
+    def __init__(self, events): 
         self._events = events
         
     
     def __iter__(self):
         return self
 
-    def __next__(self):
-        return  self._events.next()
+    def next(self):
+        e= next(self._events)
+        return  e
     
-    next = __next__  # Python 2
+    __next__ = next  # Python 2
     
     
 
+class Module():
+    '''
+        A Module contains customer serializer/deserializers.
+    '''
+    
+    __metaclass__ = ABCMeta
+    __slots__ = ['_serializers', '_deserializers']
+    
+    def __init__(self):
+        self._serializers = {}
+        self._deserializers = {}
+    
+    def add_serializer(self, cls, serializer):
+        self._serializers[cls ] = serializer
+    
+    def add_deserializer(self, cls, deserializer):
+        self._deserializers[cls ] = deserializer
+    
+    
+    def get_serializers(self):
+        return self._serializers
+    
+    def get_deserializers(self):
+        return self._deserializers
+    
+    serializers = property(get_serializers)
+    deserializers = property(get_deserializers)
 
 
+
+class DecoratorsModule(Module):
+    '''
+        Default module for decorators    
+    '''
+    
+    all_serializers = {}
+    all_deserializers = {}
+    
+    def __init__(self):
+        self._serializers = self.all_serializers
+        self._deserializers = self.all_deserializers
+        
+    @classmethod
+    def register_serializer(cls, scls, serializer):
+        cls.all_serializers[scls ] = serializer();
+    
+    @classmethod
+    def register_deserializer(cls, dcls, deserializer):
+        cls.all_deserializers[dcls ] = deserializer();
+
+
+
+class ObjectMapperBackend(DataFormatGenerator):
+    
+    __metaclass__ = ABCMeta
+    def __init__(self, pdict):
+        super(ObjectMapperBackend, self).__init__(pdict)
+        
+    @abstractmethod
+    def read_value(self, events):
+        pass
+            
+    @abstractmethod
+    def read_obj_property_name(self, events):
+        pass
+    
+        
+    @abstractmethod
+    def read_obj(self, events, cls=dict, state=POPState.EXPECTING_OBJ_START, ctxt=DeserializationContext.create_context()):
+        pass
+    
+    
+    @abstractmethod
+    def read_array(self, events, state=POPState.EXPECTING_ARRAY_START, cls=None, propname=None, ctxt=DeserializationContext.create_context()):
+        pass
+    
+    
+    @abstractmethod
+    def register_module(self, module):
+        pass
+        
+    @abstractmethod
+    def register_deserializer(self, cls, deserializer):
+        pass
+        
+    @abstractmethod    
+    def copy(self):
+        pass
+    
+     
