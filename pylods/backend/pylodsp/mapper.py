@@ -13,7 +13,6 @@ from abc import ABCMeta
     
         
 
-
 class PyObjectMapper(ObjectMapperBackend):
     '''
         Main Parser class to deserialize to objects, values and etc. This parser requires a dictionary to serialize/ deserialize from an input stream
@@ -30,15 +29,6 @@ class PyObjectMapper(ObjectMapperBackend):
 #         events = self.prepare_input(events)
         self.register_module(DecoratorsModule())
         
-        
-    
-#     def prepare_input(self, events):
-#         if events is None:
-#             return None   
-#         if isinstance(events, EventStream):
-#             return events
-#         else:
-#             raise UnsupportedTypeException('Input can only be an ' + str(EventStream) + ' instance!!')
     
     def read_value(self, events):
         val = self._pdict.read_value(next(events))
@@ -88,13 +78,9 @@ class PyObjectMapper(ObjectMapperBackend):
                 # end of object
                 if self._pdict.is_obj_end(event):
                     # check valid state
-#                     if state is not POPState.EXPECTING_OBJ_PROPERTY_OR_END:
-#                         raise UnexpectedStateException(state, POPState.EXPECTING_OBJ_PROPERTY_OR_END, " wasn't expecting a end of object")
                     return  obj
                 elif self._pdict.is_obj_property_name(event):
                     # check valid state
-#                     if state is not POPState.EXPECTING_OBJ_PROPERTY_OR_END:
-#                         raise UnexpectedStateException(state, POPState.EXPECTING_OBJ_PROPERTY_OR_END, " the received object property name was not expected")
                     propname = self._pdict.read_value(event);
                     propname = self._decode_field_name(obj, propname)
                     # setting next state
@@ -107,8 +93,6 @@ class PyObjectMapper(ObjectMapperBackend):
                     val = self.read_array(events, POPState.EXPECTING_VALUE_OR_ARRAY_END, cls, propname, ctxt)
                 elif self._pdict.is_value(event):
                     # check valid state
-#                     if state is not POPState.EXPECTING_VALUE:
-#                         raise UnexpectedStateException(state, POPState.EXPECTING_VALUE, " wasn't expecting a value")
                     # read value
                     val = self._pdict.read_value(event)
                 elif self._pdict.is_obj_start(event):
@@ -124,10 +108,7 @@ class PyObjectMapper(ObjectMapperBackend):
                 state = POPState.EXPECTING_OBJ_PROPERTY_OR_END
             
             # continue
-#             try:
             event = next(events)
-#             except StopIteration:
-#                 event = None
             
         raise UnexpectedStateException(state, POPState.EX, " wasn't expecting a value")
             

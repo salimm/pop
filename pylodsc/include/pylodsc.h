@@ -2,8 +2,10 @@
 #ifndef PYLODC_H_INCLUDED
 #define PYLODC_H_INCLUDED
 
+#include "Dictionary.h"
 #include <iostream>
 #include <Python.h>
+
 
 
 enum ParserState{
@@ -16,16 +18,14 @@ enum ParserState{
 
 
 // main function to be used in python
-PyObject* read_array(PyObject* events, PyObject* cls, PyObject* propname, PyObject* ctxt,  PyObject* pdict,  PyObject* deserializers, PyObject* TYPED, enum ParserState  state=EXPECTING_ARRAY_START);
-PyObject* read_obj(PyObject* events, PyObject* cls,  PyObject* ctxt,  PyObject* pdict,  PyObject* deserializers, PyObject* TYPED, enum ParserState  state);
+PyObject* read_array(PyObject* events, PyObject* cls, PyObject* propname, PyObject* ctxt,  Dictionary* pdict,  PyObject* deserializers, PyObject* TYPED, enum ParserState  state=EXPECTING_ARRAY_START);
+PyObject* read_obj(PyObject* events, PyObject* cls,  PyObject* ctxt,  Dictionary* pdict,  PyObject* deserializers, PyObject* TYPED, enum ParserState  state);
 
 // obj related
-PyObject* read_obj_as_value(PyObject* events, PyObject* cls, PyObject* valname, PyObject* ctxt, PyObject* pdict,  PyObject* deserializers, PyObject* TYPED);
+PyObject* read_obj_as_value(PyObject* events, PyObject* cls, PyObject* valname, PyObject* ctxt, Dictionary* dict,  PyObject* deserializers, PyObject* TYPED);
 
 // functions to use pdict
-PyObject* read_value(PyObject* events, PyObject* pdict);
-PyObject* call_pdict(PyObject* pdict, char* name,PyObject* args);
-int call_pdict_check(PyObject* pdict, char* name,PyObject* args);
+PyObject* read_value(PyObject* events, Dictionary* dict);
 PyObject* read_obj_property_name(PyObject* events,  PyObject* pdict,  PyObject* deserializers);
 
 // type related

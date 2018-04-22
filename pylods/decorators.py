@@ -18,13 +18,13 @@ def rename_attr(oldname, newname):
     return inner_rename_attr
 
 
-
 def ignore_attr(name):
     def inner_ignore_attr(cls):
         _create_pylods_property(cls, 'ignore')
         cls._pylods[cls]['ignore'][name] = True
         return cls
     return inner_ignore_attr
+
 
 def order_attr(name, order):
     def inner_order_attr(cls):
@@ -41,16 +41,14 @@ def use_serializer(serializer):
         return cls
     return inner_use_serializer
 
+
 def type_attr(name, typecls):
     def inner_order_attr(cls):
         _create_pylods_property(cls, 'type')
         cls._pylods[cls]['type'][name] = typecls
         return cls
     return inner_order_attr
-#     def inner_type_attr(cls):
-#         Typed.register_type(name, typecls, cls)
-#         return cls
-#     return inner_type_attr
+
 
 def use_deserializer(deserializer):
     def inner_use_deserializer(cls):
@@ -59,19 +57,15 @@ def use_deserializer(deserializer):
         return cls
     return inner_use_deserializer
 
+
 def _create_pylods_property(cls, name):
     _create_pylods(cls)
     if not name in cls._pylods[cls]:
         cls._pylods[cls][name] = {}
+ 
         
 def _create_pylods(cls):
     if(not hasattr(cls, "_pylods")):
         cls._pylods = {}
     if not cls in cls._pylods:
         cls._pylods[cls]={}
-
-
-
-
-
-    

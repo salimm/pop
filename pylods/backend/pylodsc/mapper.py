@@ -7,7 +7,7 @@ from pylods.deserialize import  POPState, DeserializationContext,DecoratorsModul
     ObjectMapperBackend
 from pylods.error import ParseException
 from abc import ABCMeta
-import pylodscext
+import pylodscbackend
 
 
     
@@ -69,11 +69,11 @@ class CObjectMapper(ObjectMapperBackend):
     
         
     def _read_obj(self, events, cls=dict, state=POPState.EXPECTING_OBJ_START, ctxt=DeserializationContext.create_context()):
-        return pylodscext.read_obj(events, cls, ctxt,self._pdict,self.__deserializers, state.value  );
+        return pylodscbackend.read_obj(events, cls, ctxt,self._pdict,self.__deserializers, state.value  );
 
             
     def read_array(self, events, state=POPState.EXPECTING_ARRAY_START, cls=None, propname=None, ctxt=DeserializationContext.create_context()):
-        return pylodscext.read_array(events, cls, propname, ctxt,self._pdict,self.__deserializers, state.value  );
+        return pylodscbackend.read_array(events, cls, propname, ctxt,self._pdict,self.__deserializers, state.value  );
 
     
 

@@ -4,17 +4,9 @@ Created on Dec 26, 2017
 @author: Salim
 '''
 
-from abc import ABCMeta, abstractmethod
-from pylods.deserialize import DecoratorsModule, POPState,\
-    DeserializationContext
-
+from abc import ABCMeta
+from pylods.deserialize import POPState, DeserializationContext
     
-        
-
-
-
-     
-        
         
         
         
@@ -116,5 +108,3 @@ class ObjectMapper():
     def copy(self):
         return self._backend.copy()
     
-    
-        

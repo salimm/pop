@@ -1,35 +1,38 @@
-#ifndef DICTIONARY_H
-#define DICTIONARY_H
+#ifndef PY_DICTIONARY_H
+#define PY_DICTIONARY_H
 
-// #include "EventVal.h"
+#include "Dictionary.h"
 #include <Python.h>
+#include <iostream>
  
 
 
  // Circle class declaration
-class Dictionary {
+class PyDictionary : public Dictionary{
 private:   // Accessible by members of this class only
+
+    PyObject* pdict;
    
 public:    // Accessible by ALL
-	
-	// Dictionary();
+
+    PyDictionary(PyObject* pdict);
 	/**
             indicates if the given or a tuple representing an start of object event
             :param event:
     */
-	virtual int is_obj_start(PyObject* event) = 0;
+    int is_obj_start(PyObject* event) ;
 
 	/**
             indicates if the given or a tuple representing an end of object event
             :param event
     */
-	virtual int is_obj_end(PyObject* event) = 0;
+	int is_obj_end(PyObject* event) ;
 
 	/**
             indicates if the given or tuple representing an event that represents a raw value
             :param event:
     */
-	virtual int is_value(PyObject* event) = 0;
+	int is_value(PyObject* event) ;
 
 	/**
             indicates if the given event or tuple representing an event is a property name. 
@@ -38,29 +41,29 @@ public:    // Accessible by ALL
           
         :param event:
     */
-	virtual int is_obj_property_name(PyObject* event) = 0;
+	int is_obj_property_name(PyObject* event) ;
 
 	/**
              indicates if the given or tuple representing an event that indicates start of an array
             :param event:
     */
-	virtual int is_array_start(PyObject* event) = 0;
+	int is_array_start(PyObject* event);
 
 	/**
                 indicates if the given or tuple representing an event that indicates end of an array
             :param event:
     */
-	virtual int is_array_end(PyObject* event) = 0;
+	int is_array_end(PyObject* event) ;
 
 	/**
             Returns the value in the given event or tuple representing the event
     */
-	virtual PyObject* read_value(PyObject* event) = 0;
+	PyObject* read_value(PyObject* event);
 
 
-	virtual PyObject* get_pdict() = 0;
+    PyObject* get_pdict();
 
-	virtual ~Dictionary() = 0;
+    ~PyDictionary(){};
 
 
 };

@@ -271,10 +271,3 @@ class DataFormatGenerator():
             return cls._pylods[cls].get('serializer',None)
         
         return None
-
-    
-    
-    
-
-    
-     

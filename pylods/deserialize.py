@@ -120,9 +120,6 @@ class ClassEventIterator(object):
     next = __next__  # Python 2
     
 
-
-
-        
         
     
 class POPState(Enum):
@@ -188,10 +185,6 @@ class Typed():
         # register value class for property
         typemap[propname] = valcls
         
-        
-
-
-
 
 
 class Parser():
