@@ -21,7 +21,7 @@ setup(
   author_email = 'salim.malakouti@gmail.com',
   license = 'MIT',
   url = 'https://github.com/salimm/pylods', # use the URL to the github repo
-  download_url = 'http://github.com/salimm/pylods/archive/0.4.0.tar.gz', # I'll explain this in a second
+  download_url = 'http://github.com/salimm/pylods/archive/0.4.1.tar.gz', # I'll explain this in a second
   keywords = ['python','serialization','deserialization','paser','json','msgpack','object oriented','fast','extendable','type based','jackson json'], # arbitrary keywords
   classifiers = ['Programming Language :: Python'],
   install_requires=['enum34'],
