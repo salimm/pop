@@ -14,8 +14,8 @@ module1 = Extension('pylodscbackend',
 
 setup(
   name = 'pylods',
-  packages = ['pylods'], # this must be the same as the name above
-  version = '0.4.0',
+  packages = ['pylods', 'pylods.backend', 'pylods.backend.pylodsc', 'pylods.backend.pylodsp'], # this must be the same as the name above
+  version = '0.4.1',
   description = 'Pylods, is a python library for object deserialization and serialization. Pylods provides tools to allow automatic recursive serialization of class instances and implementation of customizes rs and deserializers similar to JacksonJson for java. It currently supports JSON and Msgpack',
   author = 'Salim Malakouti',
   author_email = 'salim.malakouti@gmail.com',
