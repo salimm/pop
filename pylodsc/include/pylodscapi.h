@@ -47,7 +47,6 @@ static void **PYLODSC_API;
 /* Return -1 and set exception on error, 0 on success. */
 static int import_pylodsc(void){
     PyObject *module = PyImport_ImportModule("pylodscbackend");
-    static void **PYLODSC_API;
     if (module != NULL) {
         PyObject *c_api_object = PyObject_GetAttrString(module, "_api");
         if (c_api_object == NULL)

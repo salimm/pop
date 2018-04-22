@@ -114,7 +114,6 @@ class PyObjectMapper(ObjectMapperBackend):
             
     def read_array(self, events, state=POPState.EXPECTING_ARRAY_START, cls=None, propname=None, ctxt=DeserializationContext.create_context()):
         res = []
-        
         if state is POPState.EXPECTING_ARRAY_START:
             # setting to object start state
             first = next(events);
@@ -145,8 +144,10 @@ class PyObjectMapper(ObjectMapperBackend):
                 res.append(val)
             else:
                 raise ParseException('Unexpected event')
-#             
-            event = next(events)
+            try:
+                event = next(events)
+            except StopIteration:
+                break  # Iterator exhausted: stop the loop    
 
     
 

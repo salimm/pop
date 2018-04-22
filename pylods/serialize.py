@@ -269,5 +269,4 @@ class DataFormatGenerator():
         deserializer = self._serializers.get(cls, None)
         if deserializer is None and hasattr(cls, '_pylods'):
             return cls._pylods[cls].get('serializer',None)
-        
         return None

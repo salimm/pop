@@ -55,7 +55,6 @@ PyObject* read_array(PyObject* events, PyObject* cls, PyObject* propname, PyObje
         if (dict->is_array_end(event)){
             // check valid state
             if (state != EXPECTING_VALUE_OR_ARRAY_END){
-                //std::cout<< "==========9\n";
                 // raise UnexpectedStateException(POPState.EXPECTING_VALUE_OR_ARRAY_END, state, " wasn't expecting a end of object")
             }
             break;
@@ -98,7 +97,6 @@ PyObject* read_obj(PyObject* events, PyObject* cls,  PyObject* ctxt,  Dictionary
     Py_INCREF(cls);
     Py_INCREF(ctxt);
     Py_INCREF(deserializers);
-
     PyObject* obj =PyObject_CallObject(cls, NULL); // here is the problem :(((
     if (state == EXPECTING_OBJ_START){
         //setting to object start state
@@ -143,7 +141,6 @@ PyObject* read_obj(PyObject* events, PyObject* cls,  PyObject* ctxt,  Dictionary
                 Py_DECREF(event);
                  // raise ParseException(" Unexpected event when expected state is: " + str(state) + " while event was: " + str(event))
             }
-                   
         }else if (state == EXPECTING_VALUE){
             PyObject* val = NULL;
 
@@ -181,7 +178,6 @@ PyObject* read_obj(PyObject* events, PyObject* cls,  PyObject* ctxt,  Dictionary
             state = EXPECTING_OBJ_PROPERTY_OR_END;
 
         }
-
         Py_DECREF(event);
         event = PyIter_Next(events);
     }
@@ -235,7 +231,6 @@ PyObject* decode_field_name(PyObject* obj, PyObject* name){
         //# 3. remove private convention _
 
         PyObject* fields = fetch_obj_fields(obj); // new ref
-        //PyObject_Print(fields, stdout, 0);
 
         PyObject* properties = extract_property_names(obj);
 
@@ -273,7 +268,6 @@ PyObject* decode_field_name(PyObject* obj, PyObject* name){
 
 
 PyObject* read_obj_as_value(PyObject* events, PyObject* cls, PyObject* valname, PyObject* ctxt, Dictionary* dict,  PyObject* deserializers, PyObject* TYPED){
-
     Py_XINCREF(deserializers);
     Py_XINCREF(ctxt);
     Py_XINCREF(cls);
@@ -282,7 +276,6 @@ PyObject* read_obj_as_value(PyObject* events, PyObject* cls, PyObject* valname, 
     PyObject* val = NULL;
     PyObject* valcls = resolve(cls, valname, TYPED);
     PyObject* deserializer = lookup_deserializer(deserializers, valcls);
-
     if (deserializer != NULL){
         PyObject* count = PyInt_FromLong(1);
         PyObject* method = PyString_FromString("execute");
@@ -322,15 +315,13 @@ PyObject* resolve(PyObject* cls, PyObject* valname, PyObject* TYPED){
     Py_XINCREF(cls);
     Py_XINCREF(valname);
     Py_XINCREF(TYPED);
-
     PyObject* valcls = NULL;
-    if ((cls != NULL) && (valname != NULL)) {
+    if ((cls != NULL) && (valname != NULL) && (valname != Py_None)) {
         //attempt to resolve class of value
         PyObject* method = PyString_FromString("resolve");
         valcls = PyObject_CallMethodObjArgs(TYPED, method, valname, cls, NULL);
         Py_DECREF(method);
-
-        if(valcls == Py_None){            
+        if(valcls == Py_None){      
             if(PyObject_HasAttrString(cls, "_pylods")){
                 PyObject* pylods = PyObject_GetAttrString(cls, "_pylods");
                 PyObject* typemap = PyDict_GetItemString(PyDict_GetItem(pylods,cls),"type");
@@ -340,7 +331,7 @@ PyObject* resolve(PyObject* cls, PyObject* valname, PyObject* TYPED){
                 Py_DECREF(pylods);
             }
         }
-    }else if((cls != NULL) && (valname == NULL) ){
+    }else if((cls != NULL) && ((valname == NULL)|| (valname == Py_None)) ){
         valcls = cls;        
     }
     
