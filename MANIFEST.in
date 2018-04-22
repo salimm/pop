@@ -1,0 +1,5 @@
+include LICENSE.txt
+include pylodsc/include/Dictionary.h
+include pylodsc/include/PyDictionary.h
+include pylodsc/include/pylodsc.h
+include pylodsc/include/pylodscapi.h
