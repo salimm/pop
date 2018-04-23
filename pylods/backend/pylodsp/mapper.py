@@ -4,7 +4,7 @@ Created on Dec 26, 2017
 @author: Salim
 '''
 from pylods.deserialize import  Typed, POPState, DeserializationContext,\
-    DecoratorsModule, ObjectMapperBackend
+    DecoratorsModule, ObjectMapperBackend, ClassEventIterator
 from pylods.error import UnexpectedStateException, \
     ObjectDeserializationException, ParseException
 from abc import ABCMeta
@@ -50,7 +50,7 @@ class PyObjectMapper(ObjectMapperBackend):
             raise ParseException("Couldn't start reading an object at this state: " + str(state))
         deserializer = self.__lookup_deserializer(cls)
         if deserializer:
-            val = deserializer.execute(events, self._pdict, count=cnt, ctxt=ctxt)
+            val = deserializer.execute(ClassEventIterator(events, self._pdict, cnt), self._pdict, ctxt=ctxt)
         else:    
             val = self._read_obj(events, cls, state, ctxt)
             
@@ -167,7 +167,7 @@ class PyObjectMapper(ObjectMapperBackend):
             valcls = dict
         deserializer = self.__lookup_deserializer(valcls)
         if deserializer:
-            val = deserializer.execute(events, self._pdict, count=1, ctxt=ctxt)
+            val = deserializer.execute(ClassEventIterator(events, self._pdict, 1), self._pdict, ctxt=ctxt)
         else:    
             val = self._read_obj(events, valcls, POPState.EXPECTING_OBJ_PROPERTY_OR_END, ctxt)
         return val

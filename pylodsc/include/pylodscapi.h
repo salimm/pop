@@ -24,6 +24,10 @@ extern "C" {
 #define PYLODSC_ReadObject_RETURN PyObject*
 #define PYLODSC_ReadObject_PROTO (PyObject* events, PyObject* cls,  PyObject* ctxt,  Dictionary* pdict,  PyObject* deserializers, PyObject* TYPED, enum ParserState  state)
 
+#define PYLODSC_CreateClassEventIterator_NUM 2
+#define PYLODSC_CreateClassEventIterator_RETURN PyObject*
+#define PYLODSC_CreateClassEventIterator_PROTO (PyObject* events, Dictionary* dict, long int count)
+
 /* Total number of C API pointers */
 #define PYLODSC_API_pointers 2
 
@@ -33,6 +37,7 @@ extern "C" {
 
 static PYLODSC_ReadArray_RETURN PYLODSC_ReadArray PYLODSC_ReadArray_PROTO;
 static PYLODSC_ReadObject_RETURN PYLODSC_ReadObject PYLODSC_ReadObject_PROTO;
+static PYLODSC_CreateClassEventIterator_RETURN PYLODSC_CreateClassEventIterator PYLODSC_CreateClassEventIterator_PROTO;
 
 #else
 /* This section is used in modules that use pylodsc module's API */
@@ -44,6 +49,9 @@ static void **PYLODSC_API;
 
 #define PYLODSC_ReadObject \
  (*(PYLODSC_ReadObject_RETURN (*)PYLODSC_ReadObject_PROTO) PYLODSC_API[PYLODSC_ReadObject_NUM])
+
+#define PYLODSC_CreateClassEventIterator \
+ (*(PYLODSC_CreateClassEventIterator_RETURN (*)PYLODSC_CreateClassEventIterator_PROTO) PYLODSC_API[PYLODSC_CreateClassEventIterator_NUM])
 /* Return -1 and set exception on error, 0 on success. */
 static int import_pylodsc(void){
     PyObject *module = PyImport_ImportModule("pylodscbackend");

@@ -18,7 +18,6 @@ static PyObject* PYLODSC_ReadObject(PyObject* events, PyObject* cls,  PyObject* 
 }
 
 static PyObject* read_object_api(PyObject *self, PyObject *args){
-
     PyObject* events;
     PyObject* cls;
     PyObject* ctxt;
@@ -29,11 +28,9 @@ static PyObject* read_object_api(PyObject *self, PyObject *args){
     PyObject* pName = PyString_FromString("pylods.deserialize"); // new ref
     PyObject*  pModule = PyImport_Import(pName); // new ref
     Py_DECREF(pName); // dec ref
-
     if (pModule == NULL) {
         // throw exception
     }    
-
 
     PyObject* TYPED = PyObject_GetAttrString(pModule, "Typed");
     Py_DECREF(pModule);
@@ -42,7 +39,6 @@ static PyObject* read_object_api(PyObject *self, PyObject *args){
         return NULL;
 
     enum ParserState  converted_state = convert_state(state);
-
     PyDictionary* dict = new PyDictionary(pdict);
     PyObject*  result = PYLODSC_ReadObject(events,cls,ctxt, (Dictionary*)dict, deserializers, TYPED, converted_state);
     delete dict;
@@ -90,6 +86,32 @@ static PyObject* read_array_api(PyObject *self, PyObject *args){
 
 }
 
+PyObject * create_Class_event_iterator_api(PyObject *self, PyObject *args){
+    PyObject* events;
+    long int count;
+    PyObject* pdict;
+    if (!PyArg_ParseTuple(args, "OlO", &events, &count, &pdict))  return NULL;
+    Py_INCREF(pdict);
+    PyDictionary* dict = new PyDictionary(pdict);
+    return create_class_event_iterator(events,dict, count );
+}
+
+static PyObject * PYLODSC_CreateClassEventIterator(PyObject* events, Dictionary* dict, long int count){
+    return create_class_event_iterator(events,dict, count );
+}
+
+static PyObject * create_class_event_iterator_api(PyObject *self, PyObject *args){
+    PyObject* events;
+    long int count;
+    PyObject* pdict;
+    if (!PyArg_ParseTuple(args, "OlO", &events, &count, &pdict))  return NULL;
+    Py_INCREF(pdict);
+    PyDictionary* dict = new PyDictionary(pdict);
+    return PYLODSC_CreateClassEventIterator(events,dict, count );
+}
+
+
+
 PyMODINIT_FUNC
 initpylodscbackend(void){
     static PyMethodDef FindMethods[] = {
@@ -98,6 +120,8 @@ initpylodscbackend(void){
             "read object"},
         {"read_array",  read_array_api, METH_VARARGS,
             "read array"},
+        {"create_ClassEventIterator",  create_class_event_iterator_api, METH_VARARGS,
+            "creates iterator for custom class parsers"},
         {NULL, NULL, 0, NULL}        /* Sentinel */
     };
 
@@ -113,6 +137,7 @@ initpylodscbackend(void){
     /* Initialize the C API pointer array */
     PYLODSC_API[PYLODSC_ReadArray_NUM] = (void *)PYLODSC_ReadArray;    
     PYLODSC_API[PYLODSC_ReadObject_NUM] = (void *)PYLODSC_ReadObject;
+    PYLODSC_API[PYLODSC_CreateClassEventIterator_NUM] = (void *)PYLODSC_CreateClassEventIterator;
 
     /* Create a CObject containing the API pointer array's address */
     c_api_object = PyCObject_FromVoidPtr((void *)PYLODSC_API, NULL);

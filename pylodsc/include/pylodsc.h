@@ -39,8 +39,14 @@ PyObject* extract_property_names(PyObject* obj);
 PyObject* lookup_deserializer(PyObject* deserializers, PyObject* cls);
 PyObject* convert_state(enum ParserState);
 
+// Iterator
+PyObject* pylodscbackend_ClassEventIterator_iter(PyObject *self);
 
+PyObject* pylodscbackend_ClassEventIterator_next(PyObject *self) ; 
 
+void classeventiterator_dealloc(PyObject* self);
+
+PyObject * create_class_event_iterator(PyObject* events, Dictionary* dict, long int count);
 
 
 

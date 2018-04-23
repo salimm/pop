@@ -66,15 +66,13 @@ class EventBasedDeserializer(Deserializer):
     '''
     __metaclass__ = ABCMeta
     
-    def execute(self, events, pdict, count, ctxt):
-        tmp = EventStream(ClassEventIterator(events, pdict, count))
-        val = self.deserialize(tmp, pdict, ctxt)
+    def execute(self, events, pdict, ctxt):        
+        val = self.deserialize(events, pdict, ctxt)
         try:
-            while tmp.next():
+            while next(events):
                 pass
         except StopIteration:
             pass
-            
         return val
             
     
@@ -91,7 +89,7 @@ class ClassEventIterator(object):
         self._pdict = pdict
         self._isdone = False
         if self._count == 0:
-            if  self._pdict.is_obj_start(events.next()):
+            if  self._pdict.is_obj_start(next(events)):
                 self._count = self._count + 1
             else:
                 raise Exception("Expected a object start event but didn't receive one")
@@ -100,9 +98,10 @@ class ClassEventIterator(object):
         return self
 
     def __next__(self):
+        
         if self._isdone:
             raise StopIteration()
-        event = self._events.next()
+        event = next(self._events)
         if event:
             if self._pdict.is_obj_start(event):
                 self._count = self._count + 1
@@ -113,9 +112,7 @@ class ClassEventIterator(object):
                     raise StopIteration()
             return event
         else:
-            return None
-        
-        
+            return None                
 
     next = __next__  # Python 2
     
@@ -227,6 +224,7 @@ class EventStream():
     '''
     
     def __init__(self, events): 
+        print("{{}{}{}}{{}{{}{{}{}")
         self._events = events
         
     

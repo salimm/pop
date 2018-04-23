@@ -41,12 +41,12 @@ class CObjectMapper(ObjectMapperBackend):
 #             raise UnsupportedTypeException('Input can only be an ' + str(EventStream) + ' instance!!')
     
     def read_value(self, events):
-        val = self._pdict.read_value(events.next())
+        val = self._pdict.read_value(next(events))
         return val
             
 
     def read_obj_property_name(self, events):
-        propname = self._pdict.read_value(events.next());
+        propname = self._pdict.read_value(next(events));
         return propname
     
         
@@ -60,7 +60,7 @@ class CObjectMapper(ObjectMapperBackend):
             raise ParseException("Couldn't start reading an object at this state: " + str(state))
         deserializer = self.__lookup_deserializer(cls)
         if deserializer:
-            val = deserializer.execute(events, self._pdict, count=cnt, ctxt=ctxt)
+            val = deserializer.execute(pylodscbackend.create_ClassEventIterator(events, cnt, self._pdict), self._pdict, ctxt=ctxt)
         else:    
             val = self._read_obj(events, cls, state, ctxt)
             
