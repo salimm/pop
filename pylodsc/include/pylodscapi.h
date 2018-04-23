@@ -29,7 +29,7 @@ extern "C" {
 #define PYLODSC_CreateClassEventIterator_PROTO (PyObject* events, Dictionary* dict, long int count)
 
 /* Total number of C API pointers */
-#define PYLODSC_API_pointers 2
+#define PYLODSC_API_pointers 3
 
 
 #ifdef PYLODSC_MODULE

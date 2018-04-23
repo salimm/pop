@@ -245,32 +245,32 @@ int contains(PyObject* list, PyObject* value){
 
 PyObject* decode_field_name(PyObject* obj, PyObject* name){    
     Py_INCREF(name);
-    //std::cout << "===== decode 1\n";
-    //PyObject_Print(obj,stdout,0);
-    //std::cout << "\n===== decode 1\n";
+    // std::cout << "===== decode 1\n";
+    // PyObject_Print(obj,stdout,0);
+    // std::cout << "\n===== decode 1\n";
     Py_INCREF(obj);
     PyObject* result = NULL;
 
-    //std::cout << "===== decode 2\n";
+    // std::cout << "===== decode 2\n";
     if(PyObject_IsInstance(obj,(PyObject* )&PyDict_Type)){
-        //std::cout << "===== decode 3\n";
+        // std::cout << "===== decode 3\n";
         Py_INCREF(name);
         result = name;
     }else{
-        //std::cout << "===== decode 4\n";
+        // std::cout << "===== decode 4\n";
         //1. check to rename fields using decorator
         PyObject* cls = PyObject_GetAttrString(obj, (char *)"__class__"); // new ref
         if(PyObject_HasAttrString(cls, "_pylods")){
-            //std::cout << "===== decode 5\n";
+            // std::cout << "===== decode 5\n";
             PyObject* pylods = PyObject_GetAttrString(cls, "_pylods"); // new ref
             
             PyObject* namedecodemap = PyDict_GetItemString(PyDict_GetItem(pylods,cls),"namedecode"); // borrowed ref
             if (namedecodemap!=NULL){
-                //std::cout << "===== decode 6\n";
-                //PyObject_Print(namedecodemap,stdout,0);
-                //PyObject_Print(name,stdout,0);
+                // std::cout << "===== decode 6\n";
+                // PyObject_Print(namedecodemap,stdout,0);
+                // PyObject_Print(name,stdout,0);
                 result = PyDict_GetItem(namedecodemap, name); // borrowed ref
-                //PyObject_Print(result,stdout,0);
+                // PyObject_Print(result,stdout,0);
                 if(result!=NULL){
                     Py_INCREF(result);
                 }
@@ -327,7 +327,7 @@ PyObject* decode_field_name(PyObject* obj, PyObject* name){
     Py_DECREF(name);
     Py_DECREF(obj);
     Py_INCREF(name);
-    result = name;
+    
 
     //std::cout << "===== decode last\n";
     //PyObject_Print(obj,stdout,0);
