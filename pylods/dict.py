@@ -11,6 +11,9 @@ class Dictionary(object):
     __classmeta__ = ABCMeta
     
     
+    def __init__(self):
+        self.mapper_backend = None
+        
     @abstractmethod
     def gen_events(self, instream):
         '''

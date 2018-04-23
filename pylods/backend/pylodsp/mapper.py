@@ -24,6 +24,7 @@ class PyObjectMapper(ObjectMapperBackend):
     
     
     def __init__(self, pdict):
+        pdict.mapper_backend = self
         super(PyObjectMapper, self).__init__(pdict) 
         self.__deserializers = {}
 #         events = self.prepare_input(events)

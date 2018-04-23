@@ -25,7 +25,8 @@ class CObjectMapper(ObjectMapperBackend):
     
     
     def __init__(self, pdict):
-        super(CObjectMapper, self).__init__(pdict) 
+        super(CObjectMapper, self).__init__(pdict)
+        pdict.mapper_backend = self
         self.__deserializers = {}
 #         events = self.prepare_input(events)
         self.register_module(DecoratorsModule())
