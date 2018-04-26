@@ -28,18 +28,9 @@ class CObjectMapper(ObjectMapperBackend):
         super(CObjectMapper, self).__init__(pdict)
         pdict.mapper_backend = self
         self.__deserializers = {}
-#         events = self.prepare_input(events)
         self.register_module(DecoratorsModule())
         
         
-    
-#     def prepare_input(self, events):
-#         if events is None:
-#             return None   
-#         if isinstance(events, EventStream):
-#             return events
-#         else:
-#             raise UnsupportedTypeException('Input can only be an ' + str(EventStream) + ' instance!!')
     
     def read_value(self, events):
         val = self._pdict.read_value(next(events))
