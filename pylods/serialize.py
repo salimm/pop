@@ -29,7 +29,7 @@ def sort_obj_fields(lst):
 
 
 def extract_property_names(obj):
-    return [p for p in dir(getattr(obj,"__class__")) if isinstance(getattr(getattr(obj,"__class__"),p),property)]
+    return [p for p in dir(getattr(obj, "__class__")) if isinstance(getattr(getattr(obj, "__class__"), p), property)]
 
 class DataFormatGenerator():
     '''
@@ -94,18 +94,26 @@ class DataFormatGenerator():
             return
         
         fields = self._fetch_obj_fields(val)
-        length = len(fields)
+        validfields = [];
+        encodedfields = []
+        length = 0;
+        for f in fields:
+            encoded = self._encode_field_name(val, f)
+            if encoded:
+                encodedfields.append(encoded)
+                validfields.append(f)
+                length += 1;
         self.write_object_start(length, outstream)
         count = 0;
         if length > 0:
-            mappendname = self._encode_field_name(val, fields[0])
-            if mappendname is not None:
+            mappedname = encodedfields[0]
+            if mappedname is not None:
                 count += 1
-                self.write_object_field(mappendname, getattr(val, fields[0]), outstream)
+                self.write_object_field(mappedname, getattr(val, validfields[0]), outstream)
             idx = 1
-            while idx < length:                
-                name = fields[idx]
-                mappedname = self._encode_field_name(val, name)
+            while idx < length:      
+                name = validfields[idx]
+                mappedname = encodedfields[idx]
                 if mappedname is not None:
                     value = getattr(val, name)
                     if count > 0:
@@ -152,9 +160,12 @@ class DataFormatGenerator():
         if  hasattr(obj, '__dict__'):
             fields = [f for f in obj.__dict__.keys() if not callable(obj.__dict__[f])]
         elif hasattr(obj, '__slots__'):
-            fields = [f for f in obj.__slots__ if not callable(getattr(obj,f))]
+            fields = [f for f in obj.__slots__ if not callable(getattr(obj, f))]
         else:
             return [];
+        
+        properties = extract_property_names(obj)
+        fields = fields + properties;
         
         fields = self._sort_obj_fields(obj, fields)
         return fields
@@ -173,9 +184,9 @@ class DataFormatGenerator():
         for i in range(len(fields)):
             name = fields[i]
             if name in cls._pylods[cls]['order']:
-                attached[i] = (name,cls._pylods[cls]['order'][name])
+                attached[i] = (name, cls._pylods[cls]['order'][name])
             else:
-                attached[i] = (name,9999999999)     
+                attached[i] = (name, 9999999999)     
         return attached           
     
     def _encode_field_name(self, obj, name):
@@ -183,7 +194,7 @@ class DataFormatGenerator():
         
         # 1. check to rename fields using decorator
 #         print(obj)
-        cls = getattr(obj,"__class__")
+        cls = getattr(obj, "__class__")
         if hasattr(obj, '_pylods') and cls in cls._pylods :
             if 'ignore' in obj.__class__._pylods[cls] and name in obj._pylods[cls]['ignore']:
                 return None 
@@ -199,7 +210,7 @@ class DataFormatGenerator():
         if isinstance(obj, dict):
             return name
         # 1. check to rename fields using decorator
-        cls = getattr(obj,"__class__")
+        cls = getattr(obj, "__class__")
         if hasattr(obj, '_pylods'):            
             if 'namedecode' in obj.__class__._pylods[cls] and name in obj._pylods[cls]['namedecode']:
                 return obj._pylods[cls]['namedecode'][name]
@@ -212,7 +223,7 @@ class DataFormatGenerator():
         elif "_" + name in fields or properties:
             return "_" + name
         else:
-            raise Exception("property \"" + str(name) + "\" couldn't be mapped to a property in object " + str(getattr(obj,"__class__")))
+            raise Exception("property \"" + str(name) + "\" couldn't be mapped to a property in object " + str(getattr(obj, "__class__")))
         
     ######################### ARRAY
     
@@ -268,5 +279,5 @@ class DataFormatGenerator():
     def __lookup_serializer(self, cls):
         deserializer = self._serializers.get(cls, None)
         if deserializer is None and hasattr(cls, '_pylods'):
-            return cls._pylods[cls].get('serializer',None)
+            return cls._pylods[cls].get('serializer', None)
         return None
